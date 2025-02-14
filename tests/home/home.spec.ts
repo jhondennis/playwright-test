@@ -3,6 +3,7 @@ import { env } from "@/env-variables";
 
 const path = env.urlPage;
 
+test.describe.configure({ mode: "parallel" });
 test.describe("Test Home Page", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(path);
@@ -18,13 +19,13 @@ test.describe("Test Home Page", () => {
   });
 
   test("Has login button", async ({ page }) => {
-    const text = await page.locator("li.login-item").textContent();
-    expect(text).toContain("Iniciar sesión");
+    const texts = await page.locator("li.login-item").allTextContents();
+    expect(texts).toContain("Iniciar sesión");
   });
 
   test("Has register button", async ({ page }) => {
-    const text = await page.locator("li.register-item").textContent();
-    expect(text).toContain("Registrate");
+    const texts = await page.locator("li.register-item").allTextContents();
+    expect(texts).toContain("Registrate");
   });
 
   test("Has accordion text header", async ({ page }) => {
@@ -60,13 +61,28 @@ test.describe("Test Home Page", () => {
   });
 
   test("Login button redirect", async ({ page }) => {
-    await page.locator("li.login-item").click();
+    await page.locator("ul#menu-main-menu li.login-item").click();
+    await page.waitForURL(/wp-login/);
+    await expect(page).toHaveURL(/wp-login/);
+    await page.goBack();
+
+    await page.setViewportSize({ width: 375, height: 812 }); // iPhone X
+    await page.locator("button.navbar-toggler").click();
+    await page.locator("ul#menu-main-menu-1 li.login-item").click();
     await page.waitForURL(/wp-login/);
     await expect(page).toHaveURL(/wp-login/);
   });
 
   test("Register button redirect", async ({ page }) => {
-    await page.locator("li.register-item").click();
+    await page.locator("ul#menu-main-menu li.register-item").click();
+    await page.waitForURL(/wp-login/);
+    await expect(page).toHaveURL(/wp-login/);
+    await expect(page).toHaveURL(/action=register/);
+    await page.goBack();
+
+    await page.setViewportSize({ width: 375, height: 812 }); // iPhone X
+    await page.locator("button.navbar-toggler").click();
+    await page.locator("ul#menu-main-menu-1 li.register-item").click();
     await page.waitForURL(/wp-login/);
     await expect(page).toHaveURL(/wp-login/);
     await expect(page).toHaveURL(/action=register/);
